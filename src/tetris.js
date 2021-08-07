@@ -296,7 +296,7 @@ function Tetris()
 			}
 		}
 	};
-
+	
 	/**
 	 * @return void
 	 * @access public event
@@ -1396,15 +1396,34 @@ function Tetris()
 		 * @return void
 		 * @access public
 		 */
-		this.save = function()
+		this.save = function(name,score)
 		{
-			var cookie = new Cookie();
-			var a = [];
-			for (var i = 0; i < this.scores.length; ++i) {
-				a.push(this.scores[i].name+":"+this.scores[i].score);
+			// var cookie = new Cookie();
+			// var a = [];
+			// for (var i = 0; i < this.scores.length; ++i) {
+			// 	a.push(this.scores[i].name+":"+this.scores[i].score);
+			// }
+			// var s = a.join("|");
+			// cookie.set("tetris-highscores", s, 3600*24*1000);
+			var url = "http://localhost:3000/api/user";
+			var method = "POST";
+			var postData = {
+				userName: name,
+				userScore: score
+			};
+
+			var shouldBeAsync = true;
+
+			var request = new XMLHttpRequest();
+
+			request.onload = function () {
+				var status = request.status;
+				var data = request.responseText; 
 			}
-			var s = a.join("|");
-			cookie.set("tetris-highscores", s, 3600*24*1000);
+
+			request.open(method, url, shouldBeAsync);
+			request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+			request.send(JSON.stringify(postData));
 		};
 
 		/**
@@ -1443,7 +1462,7 @@ function Tetris()
 				}
 			}
 			this.sort();
-			this.save();
+			this.save(name,score);
 		};
 
 		/**

@@ -1,11 +1,15 @@
 const express = require('express');
 const path = require('path');
-const bodyParser = require('body-parser');
 const adminRoutes = require('./routes/admin');
-const tetrisRoutes = require('./routes/tetris')
+const userRoutes  = require('./routes/user');
 
 // Create express JS server 
 const app = express();
+
+app.use(express.json());
+app.use(express.urlencoded({
+  extended: true
+}));
 
 // Add routes to access static files
 app.use(express.static(path.join(__dirname, '/assets')));
@@ -14,7 +18,7 @@ app.use(express.static(path.join(__dirname, '/src')));
 
 //Setup routing for Tetris Application
 app.use(adminRoutes);
-app.use(tetrisRoutes);
+app.use(userRoutes);
 
 // Start Listening at port number 3000
 app.listen(3000);
