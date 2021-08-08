@@ -8,7 +8,6 @@ const fs = require('fs');
 
 router.post('/api/score', (req,res,next) => {
     const data = req.body;
-    console.log(req.body);
     const filePath = 'scores.txt';
     const userName = data.userName;
     const score = data.userScore;
