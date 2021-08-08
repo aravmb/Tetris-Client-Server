@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const adminRoutes = require('./routes/admin');
-const userRoutes  = require('./routes/user');
+const scoreRoutes  = require('./routes/score');
 
 // Create express JS server 
 const app = express();
@@ -18,7 +18,7 @@ app.use(express.static(path.join(__dirname, '/src')));
 
 //Setup routing for Tetris Application
 app.use(adminRoutes);
-app.use(userRoutes);
+app.use(scoreRoutes);
 
 // Start Listening at port number 3000
 app.listen(3000);

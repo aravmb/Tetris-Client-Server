@@ -153,7 +153,7 @@ function Tetris()
 	this.areaX = 20; // area width = x units
 	this.areaY = 20; // area height = y units
 
-	this.highscores = new Highscores(10);
+	this.highscores = new Highscores(50);
 	this.paused = false;
 
 	var alanBtnInstance = alanBtn({
@@ -373,10 +373,11 @@ function Tetris()
 	this.showHighscores = function()
 	{
 		helpwindow.close();
-		document.getElementById("tetris-highscores-content").innerHTML = self.highscores.toHtml();
+		this.highscores.getFromServer();
 		highscores.activate();
 		this.blur();
 	}
+
 	/**
 	 * @return void
 	 * @access public event
@@ -408,7 +409,7 @@ function Tetris()
 	document.getElementById("tetris-menu-highscores").onclick = function()
 	{
 		helpwindow.close();
-		document.getElementById("tetris-highscores-content").innerHTML = self.highscores.toHtml();
+		self.highscores.getFromServer();
 		highscores.activate();
 		this.blur();
 	};
@@ -1369,6 +1370,7 @@ function Tetris()
 	{
 		this.maxscores = maxscores;
 		this.scores = [];
+        var self = this;
 
 		/**
 		 * Load scores from cookie.
@@ -1376,22 +1378,22 @@ function Tetris()
 		 * @return void
 		 * @access public
 		 */
-		this.load = function()
-		{
-			var cookie = new Cookie();
-			var s = cookie.get("tetris-highscores");
-			this.scores = [];
-			if (s.length) {
-				var scores = s.split("|");
-				for (var i = 0; i < scores.length; ++i) {
-					var a = scores[i].split(":");
-					this.scores.push(new Score(a[0], Number(a[1])));
-				}
-			}
-		};
+		// this.load = function()
+		// {
+		// 	var cookie = new Cookie();
+		// 	var s = cookie.get("tetris-highscores");
+		// 	this.scores = [];
+		// 	if (s.length) {
+		// 		var scores = s.split("|");
+		// 		for (var i = 0; i < scores.length; ++i) {
+		// 			var a = scores[i].split(":");
+		// 			this.scores.push(new Score(a[0], Number(a[1])));
+		// 		}
+		// 	}
+		// };
 
 		/**
-		 * Save scores to cookie.
+		 * Save scores to server.
 		 * Note: it is automatically called after adding new score.
 		 * @return void
 		 * @access public
@@ -1405,7 +1407,7 @@ function Tetris()
 			// }
 			// var s = a.join("|");
 			// cookie.set("tetris-highscores", s, 3600*24*1000);
-			var url = "http://localhost:3000/api/user";
+			var url = "http://localhost:3000/api/score";
 			var method = "POST";
 			var postData = {
 				userName: name,
@@ -1424,6 +1426,34 @@ function Tetris()
 			request.open(method, url, shouldBeAsync);
 			request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
 			request.send(JSON.stringify(postData));
+		};
+
+		/**
+		 * Get scores to server.
+		 * @return void
+		 * @access public
+		 */
+        this.getFromServer = function() {
+			var xhr = new XMLHttpRequest();
+			xhr.onreadystatechange = function() {
+				if (this.readyState == 4 && this.status == 200) {
+					console.log(this.responseText);
+					
+					const nameAndScores = this.responseText.split(';');
+
+					self.scores = [];
+					
+					for(let i = 0; i < nameAndScores.length - 1; i++) {
+						var a = nameAndScores[i].split(",");
+						self.scores.push(new Score(a[0], Number(a[1])));
+					}
+
+					document.getElementById("tetris-highscores-content").innerHTML = self.toHtml();
+				}
+			};
+			xhr.open("GET", "/api/score", true);
+			
+			xhr.send();
 		};
 
 		/**
@@ -1482,8 +1512,12 @@ function Tetris()
 		 */
 		this.toHtml = function()
 		{
+			console.log('Inside toHtml');
+			console.log('scores =', this.scores);
+		
 			var s = '<table cellspacing="0" cellpadding="2"><tr><th></th><th>Name</th><th>Score</th></tr>';
 			for (var i = 0; i < this.scores.length; ++i) {
+				console.log('inside for loop');
 				s += '<tr><td>?.</td><td>?</td><td>?</td></tr>'.format(i+1, this.scores[i].name, this.scores[i].score);
 			}
 			s += '</table>';
@@ -1520,71 +1554,71 @@ function Tetris()
 			this.score = score;
 		}
 
-		this.load();
+		// this.load();
 	}
 
 	/**
 	 * Managing cookies.
 	 */
-	function Cookie()
-	{
-		/**
-		 * @param string name
-		 * @return string
-		 * @access public
-		 */
-		this.get = function(name)
-		{
-			var cookies = document.cookie.split(";");
-			for (var i = 0; i < cookies.length; ++i) {
-				var a = cookies[i].split("=");
-				if (a.length == 2) {
-					a[0] = a[0].trim();
-					a[1] = a[1].trim();
-					if (a[0] == name) {
-						return unescape(a[1]);
-					}
-				}
-			}
-			return "";
-		};
+	// function Cookie()
+	// {
+	// 	/**
+	// 	 * @param string name
+	// 	 * @return string
+	// 	 * @access public
+	// 	 */
+	// 	this.get = function(name)
+	// 	{
+	// 		var cookies = document.cookie.split(";");
+	// 		for (var i = 0; i < cookies.length; ++i) {
+	// 			var a = cookies[i].split("=");
+	// 			if (a.length == 2) {
+	// 				a[0] = a[0].trim();
+	// 				a[1] = a[1].trim();
+	// 				if (a[0] == name) {
+	// 					return unescape(a[1]);
+	// 				}
+	// 			}
+	// 		}
+	// 		return "";
+	// 	};
 
-		/**
-		 * @param string name
-		 * @param string value (do not use special chars like ";" "=")
-		 * @param int seconds
-		 * @param string path
-		 * @param string domain
-		 * @param bool secure
-		 * @return void
-		 * @access public
-		 */
-		this.set = function(name, value, seconds, path, domain, secure)
-		{
-			this.del(name);
-			if (!path) path = '/';
+	// 	/**
+	// 	 * @param string name
+	// 	 * @param string value (do not use special chars like ";" "=")
+	// 	 * @param int seconds
+	// 	 * @param string path
+	// 	 * @param string domain
+	// 	 * @param bool secure
+	// 	 * @return void
+	// 	 * @access public
+	// 	 */
+	// 	this.set = function(name, value, seconds, path, domain, secure)
+	// 	{
+	// 		this.del(name);
+	// 		if (!path) path = '/';
 
-			var cookie = (name + "=" + escape(value));
-			if (seconds) {
-				var date = new Date(new Date().getTime()+seconds*1000);
-				cookie += ("; expires="+date.toGMTString());
-			}
-			cookie += (path    ? "; path="+path : "");
-			cookie += (domain  ? "; domain="+domain : "");
-			cookie += (secure  ? "; secure" : "");
-			document.cookie = cookie;
-		};
+	// 		var cookie = (name + "=" + escape(value));
+	// 		if (seconds) {
+	// 			var date = new Date(new Date().getTime()+seconds*1000);
+	// 			cookie += ("; expires="+date.toGMTString());
+	// 		}
+	// 		cookie += (path    ? "; path="+path : "");
+	// 		cookie += (domain  ? "; domain="+domain : "");
+	// 		cookie += (secure  ? "; secure" : "");
+	// 		document.cookie = cookie;
+	// 	};
 
-		/**
-		 * @param name
-		 * @return void
-		 * @access public
-		 */
-		this.del = function(name)
-		{
-			document.cookie = name + "=; expires=Thu, 01-Jan-70 00:00:01 GMT";
-		};
-	}
+	// 	/**
+	// 	 * @param name
+	// 	 * @return void
+	// 	 * @access public
+	// 	 */
+	// 	this.del = function(name)
+	// 	{
+	// 		document.cookie = name + "=; expires=Thu, 01-Jan-70 00:00:01 GMT";
+	// 	};
+	// }
 }
 
 if (!String.prototype.trim) {
